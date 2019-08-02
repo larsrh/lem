@@ -171,7 +171,7 @@ let is_isa_chr x =
 let char_escape_isa c =
   let x = int_of_char c in
   if is_isa_chr x then (String.concat "" ["(CHR ''"; String.make 1 c; "'')"])
-  else String.concat "" ["(CHR "; Printf.sprintf "0x%X" 39; ")"];;
+  else String.concat "" ["(CHR "; Printf.sprintf "0x%X" x; ")"];;
 
 (* Check that string literal s contains only CHR characters for Isabelle.  Other
  * string literals should have been translated into a list by a macro. *)
@@ -2867,7 +2867,10 @@ let isa_funcl_header_indrel_seplist clause_sl =
 
 
 let isa_funcl_default eqsign (({term = n}, c, ps, topt, s1, (e : Typed_ast.exp)):funcl_aux) =
-  kwd "\"" ^ Name.to_output Term_var (B.const_ref_to_name n true c) ^ flat (List.map (pat false) ps)^ ws s1 ^ eqsign ^ kwd "(" ^ exp false e ^ kwd ")\""
+  kwd "\"" ^ Name.to_output Term_var (B.const_ref_to_name n true c) ^ flat (List.map (pat false) ps)^ ws s1 ^ eqsign ^ kwd "(" ^ exp false e ^ kwd ")\"" ^
+  (let add_decl decls n t = (Name.to_output Term_var (Name.add_lskip n) ^ kwd " :: \"" ^ typ false (C.t_to_src_t t) ^ kwd "\"") :: decls in
+   let decls = List.concat (List.map (fun p -> Nfmap.fold add_decl [] p.rest.pvars) ps) in
+   if decls = [] then emp else kwd "\n  for " ^ Output.concat (kwd "\n  and ") decls)
 
 let isa_funcl_abs eqsign (({term = n}, c, ps, topt, s1, (e : Typed_ast.exp)):funcl_aux) =
   kwd "\"" ^ Name.to_output Term_var (B.const_ref_to_name n true c) ^ ws s1 ^ eqsign ^ kwd "(%" ^ flat (List.map (pat false) ps) ^ kwd ". " ^ exp false e ^ kwd ")\""

@@ -14,9 +14,11 @@ AND
 append
 apply
 apply_end
+arg
 arities
 assume
 assumes
+at
 atom_decl
 atp_info
 atp_kill
